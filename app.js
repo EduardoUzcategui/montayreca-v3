@@ -35,10 +35,10 @@ app.post('/register', async (req, res) => {
       connection.query(sql, [name, username, hashedPassword], (err, result) => {
         if (err) {
           console.error('Error al registrar al usuario:', err);
-          //res.status(500).send('Error al registrar al usuario');
+          res.status(500).send('Error al registrar al usuario');
         } else {
           console.log('Usuario registrado');
-          res.status(200).send({ message: 'Registro completado' });
+          res.status(200).send();
         }
       });
     } catch (error) {
@@ -56,6 +56,7 @@ app.post('/register', async (req, res) => {
       connection.query(sql, [username], async (err, results) => {
         if (err) {
           return res.sendStatus(500); 
+          return mensajeError.classList.toggle("error-escondido",false);
         }
         if (results.length === 0) {
           return res.sendStatus(404); 

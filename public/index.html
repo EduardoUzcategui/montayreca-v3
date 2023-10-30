@@ -91,6 +91,8 @@
 					<span class="checkbox">
 					  <input type="checkbox" id="check" />
 					  <label for="check">Recordarme</label>
+					  <p class="error-escondido">Error al iniciar sesion</p>
+					  <p id="succ"></p>
 					</span>
 					<a href="#" class="forgot_pw">¿Olvidaste tu contraseña?</a>
 				  </div>
@@ -119,7 +121,7 @@
 					<i class="uil uil-lock password"></i>
 					<i class="uil uil-eye-slash pw_hide"></i>
 				  </div>
-				  <button type="submit" class="btn btn-primary" onclick="showConfirmationMessage()">Registrarse</button>
+				  <button type="submit" class="btn btn-primary" onclick="toggleForm()" onclick="showConfirmationMessage()">Registrarse</button>
 				  <p id="registrationMessage" style="display: none; color: green;">Registro completado</p>
 				</form>
 				<div class="toggle-btn" onclick="toggleForm()">¿Ya estás registrado? Haz clic aquí para iniciar sesión</div>
@@ -475,6 +477,9 @@
 		registerForm.style.display = 'block';
 		toggleBtn.textContent = 'Already registered? Click here';
 	  }
+	}
+	function hideForm(){
+		 
 	}
   </script>
 
