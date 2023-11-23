@@ -97,6 +97,8 @@
 					<span class="checkbox">
 					  <input type="checkbox" id="check" />
 					  <label for="check">Recordarme</label>
+					  <p class="error-escondido">Error al iniciar sesion</p>
+					  <p id="succ"></p>
 					</span>
 					<a href="#" class="forgot_pw">¿Olvidaste tu contraseña?</a>
 				  </div>
@@ -106,34 +108,30 @@
 			  </div>
 			  <div id="register-form" class="registerForm" style="display: none;">
 				<p>¿Todavía no estás registrado? Regístrate aquí</p>
-					<form action="/register" method="POST" onsubmit="return registerUser(event);">
-						<div class="input_box">
-							<input name='cedula_rif' type="text" placeholder="Cédula o RIF" required />
-						</div>
-						<div class="input_box">
-							<input name='nombre_razon_social' type="text" placeholder="Nombre o Razón Social" required /> 
-						</div>
-						<div class="input_box">
-							<input name="telefono" type="text" placeholder="Teléfono" />
-						</div>
-						<div class="input_box">
-							<input name='direccion' type="text" placeholder="Dirección" />
-						</div>
-						<input name='itip' type="hidden" value="0" />
-						<div class="input_box">
-							<input name='email' type="email" placeholder="Email" required />
-						</div>
-						<div class="input_box">
-							<input name='password' type="password" placeholder="Contraseña" required />
-						</div>
-						<div class="input_box">
-							<input name='password_confirmation' type="password" placeholder="Confirmar contraseña" required />
-						</div>
-						<button type="submit" class="btn btn-primary">Registrarse</button>
-						<p id="registrationMessage" style="display: none; color: green;">Registro completado</p>
-					</form>
-					<div class="toggle-btn" onclick="toggleForm()">¿Ya estás registrado? Haz clic aquí para iniciar sesión</div>
-				</div>
+				<form action="/register" method="POST" onsubmit="return validateForm()">
+				  <div class="input_box">
+					<input name='name' type="text" placeholder="Nombre" required />
+					<i class="uil uil-user"></i>
+				  </div>
+				  <div class="input_box">
+					<input name='username' type="username" placeholder="usuario" required /> 
+					<i class="uil uil-envelope-alt email"></i>
+				  </div>
+				  <div class="input_box">
+					<input name="password" id="password" type="password" placeholder="Contraseña" required />
+					<i class="uil uil-lock password"></i>
+					<i class="uil uil-eye-slash pw_hide"></i>
+				  </div>
+				  <div class="input_box">
+					<input name='confirmPassword' id="confirmPassword" type="password" placeholder="Confirmar contraseña" required />
+					<i class="uil uil-lock password"></i>
+					<i class="uil uil-eye-slash pw_hide"></i>
+				  </div>
+				  <button type="submit" class="btn btn-primary" onclick="showConfirmationMessage()">Registrarse</button>
+				  <p id="registrationMessage" style="display: none; color: green;">Registro completado</p>
+				</form>
+				<div class="toggle-btn" onclick="toggleForm()">¿Ya estás registrado? Haz clic aquí para iniciar sesión</div>
+			  </div>
 			</div>
 		</div>
 		
@@ -661,6 +659,9 @@ function registerUser(event) {
 		registerForm.style.display = 'block';
 		toggleBtn.textContent = 'Already registered? Click here';
 	  }
+	}
+	function hideForm(){
+		 
 	}
   </script>
 

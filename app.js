@@ -35,272 +35,45 @@ connection.connect((err) => {
   console.log('Conectado a la base de datos MySQL');
 });
 
-app.post('/register', async (req, res, next) => {
-  try {
-    const { cedula_rif, nombre_razon_social, telefono, direccion, email, password, itip, username } = req.body;
-
-    // Imprime en la consola los datos que se están recibiendo
-    console.log('Datos recibidos en el servidor:', {
-      cedula_rif: typeof cedula_rif,
-      nombre_razon_social: typeof nombre_razon_social,
-      telefono: typeof telefono,
-      direccion: typeof direccion,
-      email: typeof email,
-      password: typeof password,
-      itip: typeof itip,
-      username: typeof username,
-    });
-
-    const sql = 'INSERT INTO usuarios (cedula_rif, nombre_razon_social, telefono, direccion, email, password, itip, username) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    connection.query(sql, [cedula_rif, nombre_razon_social, telefono, direccion, email, password, itip, username], (err, result) => {
-      if (err) {
-        console.error('Error al registrar al usuario:', err);
-        res.status(500).json({ error: 'Error al registrar al usuario. Por favor, inténtelo de nuevo más tarde.' });
-      } else {
-        console.log('Usuario registrado');
-        res.status(200).json({ message: 'Registro completado' });
-      }
-    });
-  } catch (error) {
-    console.error('Error al registrar al usuario:', error);
-    res.status(500).json({ error: 'Error al registrar al usuario. Por favor, inténtelo de nuevo más tarde.' });
-  }
-});
-
-// Ruta para verificar correo electrónico
-app.get('/checkEmail', (req, res) => {
-  try {
-      const { email } = req.query;
-      
-      // Ejecutar consulta SQL
-      connection.query('SELECT * FROM usuarios WHERE email = ?', [email], (error, results) => {
-          if (error) {
-              console.error('Error en la consulta de correo electrónico:', error);
-              res.status(500).json({ error: 'Error en el servidor' });
-          } else {
-              res.json({ exists: results.length > 0 });
-          }
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Error en el servidor' });
-  }
-});
-
-// Ruta para verificar nombre de usuario
-app.get('/checkUsername', (req, res) => {
-  try {
-      const { username } = req.query;
-      
-      // Ejecutar consulta SQL
-      connection.query('SELECT * FROM usuarios WHERE username = ?', [username], (error, results) => {
-          if (error) {
-              console.error('Error en la consulta de nombre de usuario:', error);
-              res.status(500).json({ error: 'Error en el servidor' });
-          } else {
-              res.json({ exists: results.length > 0 });
-          }
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Error en el servidor' });
-  }
-});
-
-
-// ... Código existente ...
-
-let authenticatedUserId; // Variable para almacenar el ID del usuario autenticado
-
-// ... Código existente ...
-
-app.post('/authenticate', async (req, res, next) => {
-  try {
-      const { email, password } = req.body;
-      const sql = 'SELECT id, password, itip FROM usuarios WHERE email = ?';
-      connection.query(sql, [email], async (err, results) => {
-          if (err) {
-              return res.status(500).json({ error: 'Error en la autenticación del usuario. Por favor, inténtelo de nuevo más tarde.' });
-          }
-          if (results.length === 0) {
-              return res.status(404).json({ error: 'Usuario no encontrado.' });
-          }
-          
-          const user = results[0];
-          const storedPassword = user.password;
-
-          // Compare entered password with the stored password
-          if (password !== storedPassword) {
-              return res.status(401).json({ error: 'Contraseña incorrecta.' });
-          }
-
-          authenticatedUserId = user.id;
-          const itip = user.itip;
-
-          console.log(`usuario autenticado - email: ${email}, password: ${password}, itip: ${itip}, userId: ${authenticatedUserId}`);
-
-          if (itip === 1) {
-              res.status(200).json({ success: true, itip: 1, userId: authenticatedUserId });
-            
-            
-          } else {
-              connection.query('SELECT * FROM solicitudes WHERE id_usuario = ?', [authenticatedUserId], (err, results) => {
-                  if (err) {
-                      console.error('Error al obtener los formularios del usuario:', err);
-                      res.status(500).json({ error: 'Error al obtener los formularios del usuario. Por favor, inténtelo de nuevo más tarde.' });
-                  } else {
-                      const formIds = results.map(result => result.id);
-                      res.status(200).json({ success: true, itip: 0, userId: authenticatedUserId, formIds: formIds });
-                  }
-              });
-          }
-      });
-  } catch (error) {
-      console.error('Error:', error);
-      return res.status(500).json({ error: 'Error en la autenticación del usuario. Por favor, inténtelo de nuevo más tarde.' });
-  }
-});
-
-
-
-// ... Código existente ...
-
-
-
+app.post('/register', async (req, res) => {
+    const { name, username, password } = req.body;
   
-app.post('/submit_request', (req, res) => {
-  try {
-      const { fecha, tipo_de_requerimiento, descripcion, nota } = req.body;
-      const id_usuario = authenticatedUserId; // Obtén el ID del usuario autenticado desde la variable authenticatedUserId
-      const sql = 'INSERT INTO solicitudes (fecha, tipo_de_requerimiento, descripcion, nota, id_usuario) VALUES (?, ?, ?, ?, ?)';
-      connection.query(sql, [fecha, tipo_de_requerimiento, descripcion, nota, id_usuario], (err, result) => {
-          if (err) {
-              console.error('Error al insertar los datos en la tabla de solicitudes:', err);
-              res.status(500).json({ error: 'Error al enviar el formulario de requerimientos. Por favor, inténtelo de nuevo más tarde.' });
-          } else {
-              console.log('Datos insertados correctamente en la tabla de solicitudes');
-
-              // Ahora obtenemos el ID del formulario insertado y lo asignamos a formId
-              connection.query('SELECT LAST_INSERT_ID() as formId', (err, result) => {
-                  if (err) {
-                      console.error('Error al obtener el ID del formulario:', err);
-                  } else {
-                      const formId = result[0].formId; // Suponiendo que 'result' es un array con un solo elemento
-
-                      // Aquí obtenemos otros detalles del formulario y los mostramos junto con el ID del formulario
-                      connection.query('SELECT * FROM solicitudes WHERE id = ?', [formId], (err, result) => {
-                          if (err) {
-                              console.error('Error al obtener los datos del formulario:', err);
-                              res.status(500).json({ error: 'Error al obtener los datos del formulario. Por favor, inténtelo de nuevo más tarde.' });
-                          } else {
-                              const { fecha, tipo_de_requerimiento, descripcion, nota } = result[0];
-                              // Puedes mostrar estos datos junto con el ID del formulario
-                              const formDetails = `
-                                  <p class="categoria-texto" id="formularioID">
-                                      ID de formulario: ${formId}<br>
-                                      Fecha: ${fecha}<br>
-                                      Tipo de requerimiento: ${tipo_de_requerimiento}<br>
-                                      Descripción: ${descripcion}<br>
-                                      Nota: ${nota}
-                                  </p>`;
-                              res.status(200).json({ formId: formId, message: 'El formulario de requerimientos se ha enviado correctamente', formDetails: formDetails });
-                          }
-                      });
-                  }
-              });
-          }
-      });
-  } catch (error) {
-      console.error('Error al manejar el formulario de requerimientos:', error);
-      res.status(500).json({ error: 'Error al manejar el formulario de requerimientos. Por favor, inténtelo de nuevo más tarde.' });
-  }
-});
-
-
-app.post('/fetch_request_details', (req, res) => {
-  try {
-    const { formId } = req.body;
-
-    // Buscar en la tabla 'solicitudes'
-    connection.query(
-      'SELECT id, DATE_FORMAT(fecha, "%d %b %Y") AS fecha, tipo_de_requerimiento, descripcion, nota, istatus FROM solicitudes WHERE id = ? ORDER BY id',
-      [formId],
-      (err, solicitudesResult) => {
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const sql = 'INSERT INTO user (name, username, password) VALUES (?, ?, ?)';
+      connection.query(sql, [name, username, hashedPassword], (err, result) => {
         if (err) {
-          console.error('Error al obtener los detalles del formulario de solicitudes:', err);
-          res.status(500).json({
-            error: 'Error al obtener los detalles del formulario de solicitudes. Por favor, inténtelo de nuevo más tarde.',
-          });
+          console.error('Error al registrar al usuario:', err);
+          //res.status(500).send('Error al registrar al usuario');
         } else {
-          const responseData = { user: authenticatedUserId };
-
-          if (solicitudesResult.length > 0) {
-            responseData.solicitudes = solicitudesResult.map(solicitud => ({
-              formId: solicitud.id,
-              fecha: solicitud.fecha,
-              tipo_de_requerimiento: solicitud.tipo_de_requerimiento,
-              descripcion: solicitud.descripcion,
-              nota: solicitud.nota,
-              istatus: solicitud.istatus,
-            }));
-          }
-
-          // Buscar en la tabla 'cotizaciones'
-          connection.query(
-            'SELECT id AS id, DATE_FORMAT(fecha, "%d %b %Y") AS fecha, tipo, descripcion, condiciones_pago, garantia, tiempo_entrega, monto_total, istatus, id_cliente FROM cotizaciones WHERE id = ? ORDER BY id',
-            [formId],
-            (err, cotizacionesResult) => {
-              if (err) {
-                console.error('Error al obtener los detalles de la cotización:', err);
-                res.status(500).json({
-                  error: 'Error al obtener los detalles de la cotización. Por favor, inténtelo de nuevo más tarde.',
-                });
-              } else {
-                if (cotizacionesResult.length > 0) {
-                  responseData.cotizaciones = cotizacionesResult.map(cotizacion => ({
-                    formId: cotizacion.id,
-                    fecha: cotizacion.fecha,
-                    tipo_de_requerimiento: cotizacion.tipo,
-                    descripcion: cotizacion.descripcion,
-                    condiciones_pago: cotizacion.condiciones_pago,
-                    garantia: cotizacion.garantia,
-                    tiempo_entrega: cotizacion.tiempo_entrega,
-                    monto_total: cotizacion.monto_total,
-                    istatus: cotizacion.istatus,
-                    usuario: cotizacion.id_cliente,
-                  }));
-                }
-
-                console.log('Datos enviados:', responseData);
-                res.status(200).json(responseData);
-              }
-            }
-          );
+          console.log('Usuario registrado');
+          res.status(200).send({ message: 'Registro completado' });
         }
-      }
-    );
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({
-      error: 'Error al obtener los detalles del formulario. Por favor, inténtelo de nuevo más tarde.',
-    });
-  }
-});
+      });
+    } catch (error) {
+      console.error('Error al registrar al usuario:', error);
+      res.status(500).send('Error al registrar al usuario');
+    }
+  });
+  
 
-app.get('/fetch_request_details', (req, res) => {
-  try {
-    const { formId } = req.body;
-
-    // Buscar en la tabla 'solicitudes'
-    connection.query(
-      'SELECT id, DATE_FORMAT(fecha, "%d %b %Y") AS fecha, tipo_de_requerimiento, descripcion, nota, istatus FROM solicitudes WHERE id = ? ORDER BY id',
-      [formId],
-      (err, solicitudesResult) => {
+  app.post('/authenticate', async (req, res) => {
+    const { username, password } = req.body;
+  
+    try {
+      const sql = 'SELECT * FROM user WHERE username = ?';
+      connection.query(sql, [username], async (err, results) => {
         if (err) {
-          console.error('Error al obtener los detalles del formulario de solicitudes:', err);
-          res.status(500).json({
-            error: 'Error al obtener los detalles del formulario de solicitudes. Por favor, inténtelo de nuevo más tarde.',
-          });
+          return res.sendStatus(500); 
+        }
+        if (results.length === 0) {
+          return res.sendStatus(404); 
+        }
+  
+        const user = results[0];
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (isPasswordCorrect) {
+          return res.sendStatus(200);
         } else {
           const responseData = { user: authenticatedUserId };
 

@@ -343,6 +343,9 @@ a {
     text-decoration: none; }
   a.more {
     font-weight: 600; }
+    .error-escondido{
+      display: none;
+    }
 
 .custom-navbar {
   background: #4E4FeB !important;
