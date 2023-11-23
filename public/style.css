@@ -462,7 +462,7 @@ a {
       content: "";
       position: absolute;
       width: 255px;
-      height: 217px;
+      height: 250px;
       background-image: url("../images/dots-light.svg");
       background-size: contain;
       background-repeat: no-repeat;
@@ -522,7 +522,8 @@ a {
   color: #2f2f2f; }
 
 .product-section {
-  padding: 7rem 0; }
+  padding: 7rem 0;
+margin-top: 80px; }
   .product-section .product-item {
     text-align: center;
     text-decoration: none;

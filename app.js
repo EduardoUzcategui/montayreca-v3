@@ -2,10 +2,11 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const app = express();
-require('dotenv').config();
+ require('dotenv').config();
 
 const bcrypt = require('bcrypt');
 const mysql = require('mysql');
+const session = require('express-session');
 const connection = mysql.createConnection({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
@@ -17,6 +18,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(express.json());
+app.use(session({
+  secret:'Shutup',
+  cookie:{
+    sameSite: 'strict'
+  }
+}))
 
 connection.connect((err) => {
   if (err) {
@@ -116,7 +125,7 @@ app.post('/authenticate', async (req, res, next) => {
           if (results.length === 0) {
               return res.status(404).json({ error: 'Usuario no encontrado.' });
           }
-
+          
           const user = results[0];
           const storedPassword = user.password;
 
@@ -132,6 +141,8 @@ app.post('/authenticate', async (req, res, next) => {
 
           if (itip === 1) {
               res.status(200).json({ success: true, itip: 1, userId: authenticatedUserId });
+            
+            
           } else {
               connection.query('SELECT * FROM solicitudes WHERE id_usuario = ?', [authenticatedUserId], (err, results) => {
                   if (err) {
@@ -149,6 +160,7 @@ app.post('/authenticate', async (req, res, next) => {
       return res.status(500).json({ error: 'Error en la autenticación del usuario. Por favor, inténtelo de nuevo más tarde.' });
   }
 });
+
 
 
 // ... Código existente ...
@@ -773,8 +785,6 @@ app.post('/fetch_request_details', (req, res) => {
   });
 });
         
-
-
 
 // ... Resto del código ...
 

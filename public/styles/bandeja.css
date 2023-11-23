@@ -6,7 +6,7 @@
 }
 
 body{
-    overflow: hidden;
+    overflow: auto;
     font-weight: 300;
     color: var(--primary);
 }
